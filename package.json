@@ -1,10 +1,22 @@
 {
   "name": "coolcert",
   "version": "0.1.0",
-  "description": "A Certificate Authority for issuing Cool People Certificates (CPCs).",
-  "main": "index.js",
+  "description": "Certificate Authority for issuing Cool People Certificates (CPCs).",
+  "main": "src/index.js",
   "scripts": {
+    "start": "node src/index.js"
   },
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
+  "dependencies": {
+    "authrite-express": "^0.1.5",
+    "body-parser": "^1.20.0",
+    "dotenv": "^16.0.1",
+    "prettyjson": "^1.2.1",
+    "express": "^4.18.1"
+  },
+  "devDependencies": {
+    "ejs": "^3.1.8",
+    "standard": "^17.0.0"
+  }
 }
