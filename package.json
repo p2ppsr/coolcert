@@ -1,0 +1,10 @@
+{
+  "name": "coolcert",
+  "version": "0.1.0",
+  "description": "A Certificate Authority for issuing Cool People Certificates (CPCs).",
+  "main": "index.js",
+  "scripts": {
+  },
+  "author": "Peer-to-peer Privacy Systems Research, LLC",
+  "license": "Open BSV License",
+}
