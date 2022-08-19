@@ -16,19 +16,20 @@ module.exports = {
     try {
       const clientNonce = req.body.clientNonce
       // Create nonces to use to generate the serialNumber and validation key
-      // Should these be done in seperate requests?
-      const serverSerialNumberNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
-      const serverValidationKeyNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
+      // Should these be done in seperate requests? Because we want two seperate nonces, right?
+      // const serverSerialNumberNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
+      // const serverValidationKeyNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
+      const serverNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
       // Calculate the serialNumber and validationKey to use
-      const serialNumber = crypto.createHmac('sha256', clientNonce).update(serverSerialNumberNonce).digest('base64')
-      const validationKey = crypto.createHmac('sha256', clientNonce).update(serverValidationKeyNonce).digest('base64')
+      const serialNumber = crypto.createHmac('sha256', clientNonce).update(serverNonce).digest('base64')
+      const validationKey = crypto.createHmac('sha256', clientNonce).update(serverNonce).digest('base64')
 
       return res.status(200).json({
         status: 'success',
         type: process.env.CERTIFICATE_TYPE_ID,
         serialNumber,
         validationKey,
-        nonce: '?'
+        nonce: serverNonce
       })
     } catch (e) {
       console.error(e)

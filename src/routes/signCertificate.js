@@ -1,3 +1,4 @@
+const verifyNonce = require('../utils/verifyNonce')
 module.exports = {
   type: 'post',
   path: '/signCertificate',
@@ -14,7 +15,38 @@ module.exports = {
   },
   func: async (req, res) => {
     try {
-      // TODO
+      if (req.body.messageType !== 'certificateSigningRequestForm') {
+        res.status(400).json({
+          status: 'error',
+          code: 'ERR_INVALID_REQUEST',
+          description: 'Invalid message type!'
+        })
+      }
+      if (req.body.type !== process.env.CERTIFICATE_TYPE_ID) {
+        res.status(400).json({
+          status: 'error',
+          code: 'ERR_INVALID_REQUEST',
+          description: 'Invalid certificate type ID!'
+        })
+      }
+      // TODO: The server checks that the hashes match
+
+      // Validate serverNonce
+      if (!verifyNonce(req.body.serverNonce, process.env.SERVER_PRIVATE_KEY)) {
+        res.status(400).json({
+          status: 'error',
+          code: 'ERR_INVALID_NONCE',
+          description: 'Server nonce provided was not created by this server!'
+        })
+      }
+      // TODO: Sign the cert
+      // 1. Derive public key used for signing
+      // 2. Verify signature
+      // 3. Check encrypted fields and decrypt them
+      // 4. Create a spendable revocation outpoint
+      // 5. Derive the certificate signing public key
+      // 6. Signs the cert
+      // 7. Returns signed cert to the requester
       return res.status(200).json({
         status: 'Certificate Signed!'
       })
