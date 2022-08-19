@@ -2,7 +2,13 @@ module.exports = {
   type: 'post',
   path: '/signCertificate',
   summary: 'Use this route to fufill a certificate signing request.',
-  parameters: {
+  parameters: { // Should these be in the request header?
+    messageType: '',
+    type: '',
+    clientNonce: '',
+    serverNonce: '',
+    validationKey: '',
+    serialNumber: ''
   },
   exampleResponse: {
   },
