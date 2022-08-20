@@ -1,5 +1,4 @@
 const createNonce = require('../utils/createNonce')
-// const verifyNonce = require('../utils/verifyNonce')
 const crypto = require('crypto')
 
 // const TEST_CLIENT_KEY = '24c0d7f3a03d3da2f0dc563eae119d8079fdc21c76b639e6c36f8c59e016b6fb'
@@ -11,25 +10,30 @@ module.exports = {
     clientNonce: ''
   },
   exampleResponse: {
+    status: 'success',
+    type: '4h2EuSOrHF2B0FgURmDZ4WsaYjnoY4mtGo2Q5IDf5wM=',
+    serialNonce: 'kCD592Gbq+QqrmQzn9im6XvkK3oFkNF/rcgarLefkdM=',
+    validationNonce: 'uEClilzHmF8n1d4AMxpACBg/8SMJEiJeJMycWAMoWg8=',
+    serialNumber: '24lRlUndeq6ShMA8p2OQjBtR6UEWVVBySLEQPuPK44k=',
+    validationKey: 'QIqLSq5Dw+DuFb5X5b1qstV5VXhFEq+UzFSSArk92Ps='
   },
   func: async (req, res) => {
     try {
       const clientNonce = req.body.clientNonce
       // Create nonces to use to generate the serialNumber and validation key
-      // Should these be done in seperate requests? Because we want two seperate nonces, right?
-      // const serverSerialNumberNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
-      // const serverValidationKeyNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
-      const serverNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
+      const serverSerialNumberNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
+      const serverValidationKeyNonce = createNonce(process.env.SERVER_PRIVATE_KEY)
       // Calculate the serialNumber and validationKey to use
-      const serialNumber = crypto.createHmac('sha256', clientNonce).update(serverNonce).digest('base64')
-      const validationKey = crypto.createHmac('sha256', clientNonce).update(serverNonce).digest('base64')
+      const serialNumber = crypto.createHash('sha256').update(clientNonce + serverSerialNumberNonce).digest('base64')
+      const validationKey = crypto.createHash('sha256').update(clientNonce + serverValidationKeyNonce).digest('base64')
 
       return res.status(200).json({
         status: 'success',
         type: process.env.CERTIFICATE_TYPE_ID,
+        serialNonce: serverSerialNumberNonce,
+        validationNonce: serverValidationKeyNonce,
         serialNumber,
-        validationKey,
-        nonce: serverNonce
+        validationKey
       })
     } catch (e) {
       console.error(e)
