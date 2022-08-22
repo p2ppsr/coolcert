@@ -1,9 +1,11 @@
 const verifyNonce = require('../utils/verifyNonce')
-const crypto = require('crypto')
-const bsv = require('bsv')
 const { decrypt } = require('@cwi/crypto')
+const { Crypto } = require('@peculiar/webcrypto')
+const crypto = require('crypto')
+global.crypto = new Crypto()
+const bsv = require('bsv')
 const { getPaymentAddress, getPaymentPrivateKey } = require('sendover')
-// const Ninja = require('utxoninja')
+
 module.exports = {
   type: 'post',
   path: '/signCertificate',
@@ -16,23 +18,24 @@ module.exports = {
     serverValidationNonce: '',
     validationKey: '',
     serialNumber: '',
-    fields: {},
+    fields: {
+      cool: true
+    },
     keyring: {}
   },
   exampleResponse: {
   },
   func: async (req, res) => {
     try {
-      // TODO: Refactor to validation function?
       if (req.body.messageType !== 'certificateSigningRequest') {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_REQUEST',
           description: 'Invalid message type!'
         })
       }
       if (req.body.type !== process.env.CERTIFICATE_TYPE_ID) {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_REQUEST',
           description: 'Invalid certificate type ID!'
@@ -40,14 +43,14 @@ module.exports = {
       }
       // Validate server nonces
       if (!verifyNonce(req.body.serverSerialNonce, process.env.SERVER_PRIVATE_KEY)) {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_NONCE',
           description: 'Server serial nonce provided was not created by this server!'
         })
       }
       if (!verifyNonce(req.body.serverValidationNonce, process.env.SERVER_PRIVATE_KEY)) {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_NONCE',
           description: 'Server validation nonce provided was not created by this server!'
@@ -56,7 +59,7 @@ module.exports = {
       // The server checks that the hashes match
       const serialNumberToValidate = crypto.createHash('sha256').update(req.body.clientNonce + req.body.serverSerialNonce).digest('base64')
       if (serialNumberToValidate !== req.body.serialNumber) {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_SERIAL_NUMBER',
           description: 'Serial number provided did not match the client and server nonces provided.'
@@ -64,48 +67,64 @@ module.exports = {
       }
       const validationKeyToValidate = crypto.createHash('sha256').update(req.body.clientNonce + req.body.serverValidationNonce).digest('base64')
       if (validationKeyToValidate !== req.body.validationKey) {
-        res.status(400).json({
+        return res.status(400).json({
           status: 'error',
           code: 'ERR_INVALID_VALIDATION_KEY',
           description: 'Validation key provided did not match the client and server nonces provided.'
         })
       }
 
-      // 1. Derive their private key:
-      const derivedPrivateKeyringKey = getPaymentPrivateKey({
-        senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-        recipientPublicKey: req.body.authrite.identityKey, // Is this the correct key?
-        invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
-        returnType: 'publicKey'
-      })
-      // 2. Derive the sender’s public key:
-      const derivedPublicKeyringKey = getPaymentAddress({
-        senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-        recipientPublicKey: req.body.authrite.identityKey, // Is this the correct key?
-        invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
-        returnType: 'publicKey'
-      })
-      // 3. Use the shared secret between the keys from step 1 and step 2 for decryption.
-      const sharedSecret = derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer() // ?
-      let decryptedKeyring
+      // 3. Check encrypted fields and decrypt them
+      const keyring = req.body.keyring
+      let decryptedFields
+      for (const fieldName in keyring) {
+        // 1. Derive their private key:
+        const derivedPrivateKeyringKey = getPaymentPrivateKey({
+          senderPublicKey: req.authrite.identityKey,
+          recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
+          invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
+          returnType: 'bsv'
+        })
+        // 2. Derive the sender’s public key:
+        const derivedPublicKeyringKey = getPaymentAddress({
+          senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
+          recipientPublicKey: req.authrite.identityKey,
+          invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
+          returnType: 'bsv'
+        })
+        // 3. Use the shared secret between the keys from step 1 and step 2 for decryption.
+        const sharedSecret = derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer().slice(1)
 
-      // 3. TODO: Check encrypted fields and decrypt them
-      // const fieldsToDecrypt = req.body.fields // ?
-      // For each CertificateFieldRevelationKeyring key/value pair, decrypt the corresponding field and compare with ?
-      // fieldsToDecrypt.forEach(async field => {
-      //   const keyAsBuffer = Buffer.from(key, 'base64')
-      //   const decryptionKey = await global.crypto.subtle.importKey(
-      //     'raw',
-      //     new Uint8Array(keyAsBuffer),
-      //     {
-      //       name: 'AES-GCM'
-      //     },
-      //     true,
-      //     ['decrypt']
-      //   )
-      //   const decryptedField = await decrypt(new Uint8Array(field), decryptionKey, 'Uint8Array')
-      // })
-      // 4. TODO: Create a spendable revocation outpoint (using ninja.createTransaction?)
+        // 1. Encrypted (decryption key) revelation key --> Decrypt it using shared secret
+        let decryptionKey = await global.crypto.subtle.importKey(
+          'raw',
+          new Uint8Array(sharedSecret),
+          {
+            name: 'AES-GCM'
+          },
+          true,
+          ['decrypt']
+        )
+        const revelationKey = await decrypt(new Uint8Array(keyring[fieldName]), decryptionKey, 'Uint8Array')
+
+        // 2. (decryption key) revelation key --> Decrypt the field using the revelation key
+        decryptionKey = await global.crypto.subtle.importKey(
+          'raw',
+          new Uint8Array(revelationKey),
+          {
+            name: 'AES-GCM'
+          },
+          true,
+          ['decrypt']
+        )
+        // 3. Field
+        const fieldValue = await decrypt(new Uint8Array(req.body.fields[fieldName]), decryptionKey, 'Uint8Array')
+        decryptedFields[fieldName] = fieldValue
+      }
+
+      // 4. TODO: Create an 'actual' spendable revocation outpoint
+      const revocationOutpoint = '000000000000000000000000000000000000000000000000000000000000000000000000'
+
       // 5. Derive the certificate signing public key (sendover)
       const validationPublicKey = bsv.PrivateKey.fromHex(Buffer.from(req.body.validationKey, 'base64').toString('hex')).publicKey.toString()
       const derivedPrivateKey = getPaymentPrivateKey({
@@ -114,22 +133,36 @@ module.exports = {
         invoiceNumber: `2-authrite certificate signature ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber}`,
         returnType: 'publicKey'
       })
-      // 6. Signs the cert
-      const dataToSign = Buffer.from(JSON.stringify(req.body)) // TODO: check order after stringify // TODO: Validate what you're signing!!
-      const certificate = {
-        fields: req.body.fields
+
+      // Field validation
+      if (req.body.fields.cool !== 'true' && req.body.fields) {
+        return res.status(500).json({
+          status: 'error',
+          code: 'ERR_NOT_COOL_ENOUGH',
+          description: 'Sorry, you are not cool enough!'
+        })
       }
+
+      // Create a signed signature to return
+      const certificate = {
+        type: req.body.type,
+        validationKey: req.body.validationKey,
+        serialNumber: req.body.serialNumber,
+        fields: req.body.fields,
+        certifier: bsv.PrivateKey.fromHex(process.env.SERVER_PRIVATE_KEY).publicKey.toString(),
+        revocationOutpoint
+      }
+
+      // 6. Signs the cert
+      const dataToSign = Buffer.from(JSON.stringify(certificate))
+
       // Construct an object with the fields you know about
-      const certifiedSignature = bsv.crypto.ECDSA.sign(
+      const signature = bsv.crypto.ECDSA.sign(
         bsv.crypto.Hash.sha256(dataToSign),
         bsv.PrivateKey.fromWIF(derivedPrivateKey)
       )
-      // TODO: Append the signature to the certificate
-      // const certificate = {
-      //   ...req.body, // Check this // TODO: Create a certificate structure that omits particular things and then send it back after validation.
-      //   certifiedSignature,
-      //   certifier: bsv.PrivateKey.fromHex(process.env.SERVER_PRIVATE_KEY).publicKey.toString()
-      // }
+      certificate.signature = signature
+
       // 7. Returns signed cert to the requester
       return res.status(200).json({
         status: 'success',
@@ -137,7 +170,7 @@ module.exports = {
       })
     } catch (e) {
       console.error(e)
-      res.status(500).json({
+      return res.status(500).json({
         status: 'error',
         code: 'ERR_INTERNAL',
         description: 'An internal error has occurred.'
