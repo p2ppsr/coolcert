@@ -1,7 +1,6 @@
 const createNonce = require('../utils/createNonce')
 const crypto = require('crypto')
 
-// const TEST_CLIENT_KEY = '24c0d7f3a03d3da2f0dc563eae119d8079fdc21c76b639e6c36f8c59e016b6fb'
 module.exports = {
   type: 'post',
   path: '/initialRequest',

@@ -74,7 +74,7 @@ module.exports = {
         })
       }
 
-      // 3. Check encrypted fields and decrypt them
+      // Check encrypted fields and decrypt them
       const keyring = req.body.keyring
       const decryptedFields = {}
       for (const fieldName in keyring) {
@@ -95,9 +95,7 @@ module.exports = {
         // 3. Use the shared secret between the keys from step 1 and step 2 for decryption.
         const sharedSecret = (derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer().slice(1)).toString('hex')
 
-        // const test = 'password'
-        // const passwordAsBuf = Buffer.from(test.padEnd(32, '\0'))
-        //   // 1. Encrypted (decryption key) revelation key --> Decrypt it using shared secret
+        // Encrypted (decryption key) revelation key --> Decrypt it using shared secret
         const decryptionKey = await global.crypto.subtle.importKey(
           'raw',
           Uint8Array.from(Buffer.from(sharedSecret, 'hex')), // Note: convert from base64 unless sent as a buffer
@@ -109,7 +107,7 @@ module.exports = {
         )
         const fieldRevelationKey = await decrypt(new Uint8Array(Buffer.from(req.body.keyring[fieldName], 'base64')), decryptionKey, 'Uint8Array')
 
-        // 2. (decryption key) revelation key --> Decrypt the field using the revelation key
+        // (decryption key) revelation key --> Decrypt the field using the revelation key
         const fieldRevelationCryptoKey = await global.crypto.subtle.importKey(
           'raw',
           fieldRevelationKey,
@@ -119,7 +117,7 @@ module.exports = {
           true,
           ['decrypt']
         )
-        // 3. Field
+        // Get the field value
         const fieldValue = await decrypt(new Uint8Array(Buffer.from(req.body.fields[fieldName], 'base64')), fieldRevelationCryptoKey, 'Uint8Array')
         decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
       }
@@ -166,10 +164,7 @@ module.exports = {
       certificate.signature = signature.toString('hex')
 
       // 7. Returns signed cert to the requester
-      return res.status(200).json({
-        status: 'success',
-        certificate
-      })
+      return res.status(200).json(certificate)
     } catch (e) {
       console.error(e)
       return res.status(500).json({
