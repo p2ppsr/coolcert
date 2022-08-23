@@ -76,41 +76,43 @@ module.exports = {
 
       // 3. Check encrypted fields and decrypt them
       const keyring = req.body.keyring
-      let decryptedFields
+      const decryptedFields = {}
       for (const fieldName in keyring) {
         // 1. Derive their private key:
         const derivedPrivateKeyringKey = getPaymentPrivateKey({
-          senderPublicKey: req.authrite.identityKey,
+          senderPublicKey: req.body.subject,
           recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
-          invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
+          invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
           returnType: 'bsv'
         })
         // 2. Derive the sender’s public key:
         const derivedPublicKeyringKey = getPaymentAddress({
           senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-          recipientPublicKey: req.authrite.identityKey,
-          invoiceNumber: `2-authrite certificate field encryption ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber} ${fieldName}`,
+          recipientPublicKey: req.body.subject,
+          invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
           returnType: 'bsv'
         })
         // 3. Use the shared secret between the keys from step 1 and step 2 for decryption.
-        const sharedSecret = derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer().slice(1)
+        const sharedSecret = (derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer().slice(1)).toString('hex')
 
-        // 1. Encrypted (decryption key) revelation key --> Decrypt it using shared secret
-        let decryptionKey = await global.crypto.subtle.importKey(
+        // const test = 'password'
+        // const passwordAsBuf = Buffer.from(test.padEnd(32, '\0'))
+        //   // 1. Encrypted (decryption key) revelation key --> Decrypt it using shared secret
+        const decryptionKey = await global.crypto.subtle.importKey(
           'raw',
-          new Uint8Array(sharedSecret),
+          Uint8Array.from(Buffer.from(sharedSecret, 'hex')), // Note: convert from base64 unless sent as a buffer
           {
             name: 'AES-GCM'
           },
           true,
           ['decrypt']
         )
-        const revelationKey = await decrypt(new Uint8Array(keyring[fieldName]), decryptionKey, 'Uint8Array')
+        const fieldRevelationKey = await decrypt(new Uint8Array(Buffer.from(req.body.keyring[fieldName], 'base64')), decryptionKey, 'Uint8Array')
 
         // 2. (decryption key) revelation key --> Decrypt the field using the revelation key
-        decryptionKey = await global.crypto.subtle.importKey(
+        const fieldRevelationCryptoKey = await global.crypto.subtle.importKey(
           'raw',
-          new Uint8Array(revelationKey),
+          fieldRevelationKey,
           {
             name: 'AES-GCM'
           },
@@ -118,8 +120,8 @@ module.exports = {
           ['decrypt']
         )
         // 3. Field
-        const fieldValue = await decrypt(new Uint8Array(req.body.fields[fieldName]), decryptionKey, 'Uint8Array')
-        decryptedFields[fieldName] = fieldValue
+        const fieldValue = await decrypt(new Uint8Array(Buffer.from(req.body.fields[fieldName], 'base64')), fieldRevelationCryptoKey, 'Uint8Array')
+        decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
       }
 
       // 4. TODO: Create an 'actual' spendable revocation outpoint
@@ -128,14 +130,14 @@ module.exports = {
       // 5. Derive the certificate signing public key (sendover)
       const validationPublicKey = bsv.PrivateKey.fromHex(Buffer.from(req.body.validationKey, 'base64').toString('hex')).publicKey.toString()
       const derivedPrivateKey = getPaymentPrivateKey({
-        senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-        recipientPublicKey: validationPublicKey,
+        senderPublicKey: validationPublicKey,
+        recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
         invoiceNumber: `2-authrite certificate signature ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber}`,
-        returnType: 'publicKey'
+        returnType: 'wif'
       })
 
       // Field validation
-      if (req.body.fields.cool !== 'true' && req.body.fields) {
+      if (decryptedFields.cool !== 'true') {
         return res.status(500).json({
           status: 'error',
           code: 'ERR_NOT_COOL_ENOUGH',
@@ -161,7 +163,7 @@ module.exports = {
         bsv.crypto.Hash.sha256(dataToSign),
         bsv.PrivateKey.fromWIF(derivedPrivateKey)
       )
-      certificate.signature = signature
+      certificate.signature = signature.toString('hex')
 
       // 7. Returns signed cert to the requester
       return res.status(200).json({
