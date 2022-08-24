@@ -131,6 +131,11 @@ module.exports = {
         cool: 'true'
       }
 
+      // Add paymail field to the template before verification
+      // expectedFields.paymail = decryptedFields.paymail
+      // Check with AtFinder that the identity key of this paymail is the same 
+      // as req.authrite.identityKey
+
       if (!Object.keys(decryptedFields).every(x => expectedFields[x] === decryptedFields[x])) {
         return res.status(400).json({
           status: 'error',
