@@ -5,6 +5,9 @@ const crypto = require('crypto')
 global.crypto = new Crypto()
 const bsv = require('bsv')
 const { getPaymentAddress, getPaymentPrivateKey } = require('sendover')
+const atfinder = require('atfinder')
+const { Authrite } = require('authrite-js')
+const { env } = require('process')
 
 module.exports = {
   type: 'post',
@@ -19,7 +22,8 @@ module.exports = {
     validationKey: '',
     serialNumber: '',
     fields: {
-      cool: true
+      cool: true,
+      paymail: 'must match the associated req.authrite.identityKey paymail'
     },
     keyring: {}
   },
@@ -76,7 +80,7 @@ module.exports = {
 
       // Check encrypted fields and decrypt them
       const keyring = req.body.keyring
-      let decryptedFields = {}
+      const decryptedFields = {}
       for (const fieldName in keyring) {
         // 1. Derive their private key:
         const derivedPrivateKeyringKey = getPaymentPrivateKey({
@@ -122,18 +126,26 @@ module.exports = {
         decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
       }
 
-      //////////
+      /// ///////
       // Certificate Template
-      //////////
-      // This can be replaced with the validated fields you expect to be 
+      /// ///////
+      // This can be replaced with the validated fields you expect to be
       // present in the incoming CSR.
       const expectedFields = {
-        cool: 'true'
+        cool: 'true',
+        paymail: decryptedFields.paymail
       }
 
-      // Add paymail field to the template before verification
-      // expectedFields.paymail = decryptedFields.paymail
-      // Check with AtFinder that the identity key of this paymail is the same 
+      // Check with AtFinder that the identity key of the provided paymail is the same
+      const authriteClient = new Authrite({ clientPrivateKey: process.env.SERVER_PRIVATE_KEY })
+      const { identityKey } = await atfinder.getCertifiedKey(expectedFields.paymail, authriteClient)
+      if (identityKey !== req.authrite.identityKey) {
+        return res.status(400).json({
+          status: 'error',
+          code: 'ERR_INVALID_PAYMAIL',
+          description: 'Invalid paymail provided!'
+        })
+      }
       // as req.authrite.identityKey
 
       if (!Object.keys(decryptedFields).every(x => expectedFields[x] === decryptedFields[x])) {
