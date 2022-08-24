@@ -76,7 +76,7 @@ module.exports = {
 
       // Check encrypted fields and decrypt them
       const keyring = req.body.keyring
-      const decryptedFields = {}
+      let decryptedFields = {}
       for (const fieldName in keyring) {
         // 1. Derive their private key:
         const derivedPrivateKeyringKey = getPaymentPrivateKey({
@@ -120,6 +120,10 @@ module.exports = {
         // Get the field value
         const fieldValue = await decrypt(new Uint8Array(Buffer.from(req.body.fields[fieldName], 'base64')), fieldRevelationCryptoKey, 'Uint8Array')
         decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
+      }
+      // Check that there are actually decrypted fields
+      if (decryptedFields === {}) {
+        decryptedFields = req.body.fields
       }
 
       // 4. TODO: Create an 'actual' spendable revocation outpoint
