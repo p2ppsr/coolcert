@@ -1,13 +1,12 @@
 const { verifyNonce } = require('cryptononce')
-const { decrypt } = require('@cwi/crypto')
 const { Crypto } = require('@peculiar/webcrypto')
 const crypto = require('crypto')
 global.crypto = new Crypto()
 const bsv = require('bsv')
-const { getPaymentAddress, getPaymentPrivateKey } = require('sendover')
+const { getPaymentPrivateKey } = require('sendover')
 const atfinder = require('atfinder')
 const { Authrite } = require('authrite-js')
-const { env } = require('process')
+const authriteUtils = require('authrite-utils') // TODO: npm i once published. Test with ../../../authrite-utils
 
 module.exports = {
   type: 'post',
@@ -78,53 +77,10 @@ module.exports = {
         })
       }
 
+      // Save the sender's identityKey as the subject of the certificate
+      req.body.subject = req.authrite.identityKey
       // Check encrypted fields and decrypt them
-      const keyring = req.body.keyring
-      const decryptedFields = {}
-      for (const fieldName in keyring) {
-        // 1. Derive their private key:
-        const derivedPrivateKeyringKey = getPaymentPrivateKey({
-          senderPublicKey: req.authrite.identityKey,
-          recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
-          invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
-          returnType: 'bsv'
-        })
-        // 2. Derive the sender’s public key:
-        const derivedPublicKeyringKey = getPaymentAddress({
-          senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-          recipientPublicKey: req.authrite.identityKey,
-          invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
-          returnType: 'bsv'
-        })
-        // 3. Use the shared secret between the keys from step 1 and step 2 for decryption.
-        const sharedSecret = (derivedPublicKeyringKey.point.mul(derivedPrivateKeyringKey).toBuffer().slice(1)).toString('hex')
-
-        // Encrypted (decryption key) revelation key --> Decrypt it using shared secret
-        const decryptionKey = await global.crypto.subtle.importKey(
-          'raw',
-          Uint8Array.from(Buffer.from(sharedSecret, 'hex')), // Note: convert from base64 unless sent as a buffer
-          {
-            name: 'AES-GCM'
-          },
-          true,
-          ['decrypt']
-        )
-        const fieldRevelationKey = await decrypt(new Uint8Array(Buffer.from(req.body.keyring[fieldName], 'base64')), decryptionKey, 'Uint8Array')
-
-        // (decryption key) revelation key --> Decrypt the field using the revelation key
-        const fieldRevelationCryptoKey = await global.crypto.subtle.importKey(
-          'raw',
-          fieldRevelationKey,
-          {
-            name: 'AES-GCM'
-          },
-          true,
-          ['decrypt']
-        )
-        // Get the field value
-        const fieldValue = await decrypt(new Uint8Array(Buffer.from(req.body.fields[fieldName], 'base64')), fieldRevelationCryptoKey, 'Uint8Array')
-        decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
-      }
+      const decryptedFields = await authriteUtils.decryptCertificateFields(req.body, req.body.keyring, process.env.SERVER_PRIVATE_KEY)
 
       /// ///////
       // Certificate Template
@@ -171,6 +127,7 @@ module.exports = {
       // Create a signed signature to return
       const certificate = {
         type: req.body.type,
+        subject: req.body.subject,
         validationKey: req.body.validationKey,
         serialNumber: req.body.serialNumber,
         fields: req.body.fields,
