@@ -6,6 +6,7 @@ const routes = require('./routes')
 const HTTP_PORT = process.env.PORT || process.env.HTTP_PORT || 8080
 const ROUTING_PREFIX = process.env.ROUTING_PREFIX || ''
 const authrite = require('authrite-express')
+const bsv = require('bsv')
 
 const app = express()
 app.use(bodyparser.json())
@@ -79,4 +80,14 @@ app.use((req, res) => {
 // This starts coolcert server listening for requests
 app.listen(HTTP_PORT, () => {
   console.log('coolcert listening on port', HTTP_PORT)
+  console.log(
+    'Certifier:',
+    bsv.PrivateKey
+      .fromHex(process.env.SERVER_PRIVATE_KEY)
+      .publicKey.toString()
+  )
+  console.log(
+    'Certificate server configured for type:',
+    process.env.CERTIFICATE_TYPE_ID
+  )
 })

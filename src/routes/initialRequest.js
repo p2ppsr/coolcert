@@ -1,4 +1,4 @@
-const createNonce = require('../utils/createNonce')
+const { createNonce } = require('cryptononce')
 const crypto = require('crypto')
 
 module.exports = {

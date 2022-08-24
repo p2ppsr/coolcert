@@ -1,4 +1,4 @@
-const verifyNonce = require('../utils/verifyNonce')
+const { verifyNonce } = require('cryptononce')
 const { decrypt } = require('@cwi/crypto')
 const { Crypto } = require('@peculiar/webcrypto')
 const crypto = require('crypto')
@@ -80,7 +80,7 @@ module.exports = {
       for (const fieldName in keyring) {
         // 1. Derive their private key:
         const derivedPrivateKeyringKey = getPaymentPrivateKey({
-          senderPublicKey: req.body.subject,
+          senderPublicKey: req.authrite.identityKey,
           recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
           invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
           returnType: 'bsv'
@@ -88,7 +88,7 @@ module.exports = {
         // 2. Derive the sender’s public key:
         const derivedPublicKeyringKey = getPaymentAddress({
           senderPrivateKey: process.env.SERVER_PRIVATE_KEY,
-          recipientPublicKey: req.body.subject,
+          recipientPublicKey: req.authrite.identityKey,
           invoiceNumber: `2-authrite certificate field encryption cert-${req.body.serialNumber} ${fieldName}`,
           returnType: 'bsv'
         })
@@ -121,9 +121,22 @@ module.exports = {
         const fieldValue = await decrypt(new Uint8Array(Buffer.from(req.body.fields[fieldName], 'base64')), fieldRevelationCryptoKey, 'Uint8Array')
         decryptedFields[fieldName] = Buffer.from(fieldValue).toString()
       }
-      // Check that there are actually decrypted fields
-      if (decryptedFields === {}) {
-        decryptedFields = req.body.fields
+
+      //////////
+      // Certificate Template
+      //////////
+      // This can be replaced with the validated fields you expect to be 
+      // present in the incoming CSR.
+      const expectedFields = {
+        cool: 'true'
+      }
+
+      if (!Object.keys(decryptedFields).every(x => expectedFields[x] === decryptedFields[x])) {
+        return res.status(400).json({
+          status: 'error',
+          code: 'ERR_NOT_COOL_ENOUGH',
+          description: 'Sorry, you are not cool enough!'
+        })
       }
 
       // 4. TODO: Create an 'actual' spendable revocation outpoint
@@ -138,22 +151,15 @@ module.exports = {
         returnType: 'wif'
       })
 
-      // Field validation
-      if (decryptedFields.cool !== 'true') {
-        return res.status(500).json({
-          status: 'error',
-          code: 'ERR_NOT_COOL_ENOUGH',
-          description: 'Sorry, you are not cool enough!'
-        })
-      }
-
       // Create a signed signature to return
       const certificate = {
         type: req.body.type,
         validationKey: req.body.validationKey,
         serialNumber: req.body.serialNumber,
         fields: req.body.fields,
-        certifier: bsv.PrivateKey.fromHex(process.env.SERVER_PRIVATE_KEY).publicKey.toString(),
+        certifier: bsv.PrivateKey
+          .fromHex(process.env.SERVER_PRIVATE_KEY)
+          .publicKey.toString(),
         revocationOutpoint
       }
 
