@@ -6,7 +6,7 @@ const bsv = require('bsv')
 const { getPaymentPrivateKey } = require('sendover')
 const atfinder = require('atfinder')
 const { Authrite } = require('authrite-js')
-const authriteUtils = require('authrite-utils') // TODO: npm i once published. Test with ../../../authrite-utils
+const authriteUtils = require('authrite-utils')
 
 module.exports = {
   type: 'post',
