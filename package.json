@@ -4,7 +4,8 @@
   "description": "Certificate Authority for issuing Cool People Certificates (CPCs).",
   "main": "src/index.js",
   "scripts": {
-    "start": "node src/index.js"
+    "start": "node src/index.js",
+    "build": "node scripts/build.js"
   },
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
