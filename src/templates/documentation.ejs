@@ -31,6 +31,9 @@
       </p>
       <p>Learn more on <a href='https://github.com/p2ppsr/coolcert'>GitHub</a></p>
       <p>For a UI that can interact with CoolCert, go <a href='https://coolcert-ui.babbage.systems'>here</a>.</p>
+      <h2>Server Parameters</h2>
+      <p>This server's certifier public key is: <%= PUBKEY %></p>
+      <p>This server will issue certificates with type: <%= CERTIFICATE_TYPE_ID %></p>
       <h2>Endpoint Documentation</h2>
         <% for (let i in routes) { %>
         <h3>

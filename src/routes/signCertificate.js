@@ -11,7 +11,7 @@ module.exports = {
   path: '/signCertificate',
   summary: 'Use this route to fufill a certificate signing request.',
   parameters: {
-    messageType: '',
+    messageType: 'certificateSigningRequest',
     type: '',
     clientNonce: '',
     serverSerialNonce: '',
@@ -19,12 +19,15 @@ module.exports = {
     validationKey: '',
     serialNumber: '',
     fields: {
-      cool: true,
-      paymail: 'must match the associated req.authrite.identityKey paymail'
+      cool: 'encrypted version of true'
     },
-    keyring: {}
+    keyring: {
+      cool: 'encrypted field revelation key for the "cool" field'
+    }
   },
   exampleResponse: {
+    subject: '0479be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8',
+    '...': 'Fully-signed Authrite certificate'
   },
   func: async (req, res) => {
     try {

@@ -14,7 +14,7 @@ You can learn more about Authrite identity system [here](https://projectbabbage.
 
 Intall Docker, then add a `SERVER_PRIVATE_KEY` to your `docker-compose.yml` file.
 
-Run `docker compose up`. Your CoolCert server will be ready to issue certificates.
+Run `docker compose up`. Your CoolCert server will be ready to issue certificates from port **3002**.
 
 ## Questions?
 

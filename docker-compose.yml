@@ -12,3 +12,4 @@ services:
       CERTIFICATE_TYPE_ID: 'AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo=' # Cool Person Certificate Type
       NODE_ENV: development
       DOJO_URL: 'https://staging-dojo.babbage.systems'
+      ROUTING_PREFIX: ''

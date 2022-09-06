@@ -6,7 +6,7 @@ module.exports = {
   path: '/initialRequest',
   summary: 'Generate an agreed upon validationKey and serialNumber',
   parameters: {
-    clientNonce: ''
+    clientNonce: 'CPwCcIEQnKWUShqxCI1UWOkCX+taw3lelmuedQgN8e0='
   },
   exampleResponse: {
     status: 'success',

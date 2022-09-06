@@ -1,12 +1,17 @@
 const ejs = require('ejs')
 const fs = require('fs')
 require('dotenv').config()
+const bsv = require('bsv')
+const PUBKEY = bsv
+  .PrivateKey.fromString(process.env.SERVER_PRIVATE_KEY)
+  .publicKey.toString()
 
 ejs.renderFile(
   'src/templates/documentation.ejs',
   {
     ...process.env,
-    routes: require('../src/routes')
+    routes: require('../src/routes'),
+    PUBKEY
   },
   {},
   (err, res) => {
