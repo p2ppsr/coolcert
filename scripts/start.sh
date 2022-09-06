@@ -7,4 +7,4 @@ then
   exit
 fi
 
-npm run dev
+npm run start
