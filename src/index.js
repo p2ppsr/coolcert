@@ -18,8 +18,27 @@ app.use((req, res, next) => {
   res.header('Access-Control-Allow-Methods', '*')
   res.header('Access-Control-Expose-Headers', '*')
   res.header('Access-Control-Allow-Private-Network', 'true')
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200)
+  } else {
+    next()
+  }
+})
+
+// This ensures that HTTPS is used unless you are in development mode
+app.use((req, res, next) => {
+  if (
+    !req.secure &&
+    req.get('x-forwarded-proto') !== 'https' &&
+    process.env.NODE_ENV !== 'development'
+  ) {
+    return res.redirect('https://' + req.get('host') + req.url)
+  }
   next()
 })
+
+// This makes the documentation site available
+app.use(express.static('public'))
 
 // This is a simple API request logger
 app.use((req, res, next) => {
@@ -34,28 +53,6 @@ app.use((req, res, next) => {
   }
   next()
 })
-
-// This makes the documentation site available
-app.use(express.static('public'))
-
-// This ensures that HTTPS is used unless you are in development mode
-app.use((req, res, next) => {
-  if (
-    !req.secure &&
-    req.get('x-forwarded-proto') !== 'https' &&
-    process.env.NODE_ENV !== 'development'
-  ) {
-    return res.redirect('https://' + req.get('host') + req.url)
-  }
-  next()
-})
-
-// This avoids issues with pre-flight requests
-app.options('*', (req, res) =>
-  res.status(200).json({
-    message: 'Send a POST request to see the results.'
-  })
-)
 
 // Authrite is enforced from here forward
 app.use(authrite.middleware({
@@ -87,7 +84,7 @@ app.listen(HTTP_PORT, () => {
       .publicKey.toString()
   )
   console.log(
-    'Certificate server configured for type:',
+    'CoolCert server configured for type:',
     process.env.CERTIFICATE_TYPE_ID
   )
 })

@@ -4,8 +4,6 @@ const crypto = require('crypto')
 global.crypto = new Crypto()
 const bsv = require('bsv')
 const { getPaymentPrivateKey } = require('sendover')
-const atfinder = require('atfinder')
-const { Authrite } = require('authrite-js')
 const authriteUtils = require('authrite-utils')
 
 module.exports = {
@@ -88,21 +86,8 @@ module.exports = {
       // This can be replaced with the validated fields you expect to be
       // present in the incoming CSR.
       const expectedFields = {
-        cool: 'true',
-        paymail: decryptedFields.paymail
+        cool: 'true'
       }
-
-      // Check with AtFinder that the identity key of the provided paymail is the same
-      const authriteClient = new Authrite({ clientPrivateKey: process.env.SERVER_PRIVATE_KEY })
-      const { identityKey } = await atfinder.getCertifiedKey(expectedFields.paymail, authriteClient)
-      if (identityKey !== req.authrite.identityKey) {
-        return res.status(400).json({
-          status: 'error',
-          code: 'ERR_INVALID_PAYMAIL',
-          description: 'Invalid paymail provided!'
-        })
-      }
-      // as req.authrite.identityKey
 
       if (!Object.keys(decryptedFields).every(x => expectedFields[x] === decryptedFields[x])) {
         return res.status(400).json({
@@ -124,7 +109,7 @@ module.exports = {
         returnType: 'wif'
       })
 
-      // Create a signed signature to return
+      // Create a signed certificate to return
       const certificate = {
         type: req.body.type,
         subject: req.body.subject,
