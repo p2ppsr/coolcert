@@ -34,6 +34,7 @@ jobs:
           HOSTING_DOMAIN: ${{ env.CURRENT_BRANCH == 'production' && 'https://coolcert.babbage.systems' || 'https://staging-coolcert.babbage.systems' }}
           DOJO_URL: ${{ env.CURRENT_BRANCH == 'production' && 'https://dojo.babbage.systems' || 'https://staging-dojo.babbage.systems' }}
           ROUTING_PREFIX: ''
+          CERTIFICATE_TYPE_ID: 'AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo=' # Cool Person Certificate Type
       - uses: google-github-actions/deploy-cloudrun@main
         with:
           credentials: ${{ secrets.gcp_deploy_creds }}

@@ -8,6 +8,17 @@ const ROUTING_PREFIX = process.env.ROUTING_PREFIX || ''
 const authrite = require('authrite-express')
 const bsv = require('bsv')
 
+if (!process.env.SERVER_PRIVATE_KEY) {
+  throw new Error('No server private key!')
+}
+if (!process.env.CERTIFICATE_TYPE_ID) {
+  throw new Error('No certificate type ID!')
+}
+
+if (process.env.SERVER_PRIVATE_KEY === '0000000000000000000000000000000000000000000000000000000000000001') {
+  console.warn('[DANGER!] The server is using the default, publicly-known SERVER_PRIVATE_KEY. DO NOT use this on your server. Change it immediately.')
+}
+
 const app = express()
 app.use(bodyparser.json())
 

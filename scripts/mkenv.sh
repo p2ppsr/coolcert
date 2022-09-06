@@ -21,6 +21,7 @@ perl -E'
     SERVER_PRIVATE_KEY \
     HOSTING_DOMAIN \
     ROUTING_PREFIX \
+    CERTIFICATE_TYPE_ID \
     DOJO_URL >> $1
 
 echo "Built! Contents of $1:"

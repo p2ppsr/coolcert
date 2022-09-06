@@ -8,6 +8,7 @@ services:
     environment:
       HOSTING_DOMAIN: 'http://localhost:3002'
       PORT: 3002
-      SERVER_PRIVATE_KEY: '' # TODO (developer): Use your own key
+      SERVER_PRIVATE_KEY: '0000000000000000000000000000000000000000000000000000000000000001' # TODO (developer): Use YOUR OWN key. DO NOT leave the default one.
+      CERTIFICATE_TYPE_ID: 'AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo=' # Cool Person Certificate Type
       NODE_ENV: development
       DOJO_URL: 'https://staging-dojo.babbage.systems'
