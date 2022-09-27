@@ -1,7 +1,7 @@
 const ejs = require('ejs')
 const fs = require('fs')
 require('dotenv').config()
-const bsv = require('bsv')
+const bsv = require('babbage-bsv')
 const PUBKEY = bsv
   .PrivateKey.fromString(process.env.SERVER_PRIVATE_KEY)
   .publicKey.toString()

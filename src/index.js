@@ -6,7 +6,7 @@ const routes = require('./routes')
 const HTTP_PORT = process.env.PORT || process.env.HTTP_PORT || 8080
 const ROUTING_PREFIX = process.env.ROUTING_PREFIX || ''
 const authrite = require('authrite-express')
-const bsv = require('bsv')
+const bsv = require('babbage-bsv')
 
 if (!process.env.SERVER_PRIVATE_KEY) {
   throw new Error('No server private key!')

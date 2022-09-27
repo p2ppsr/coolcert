@@ -2,7 +2,7 @@ const { verifyNonce } = require('cryptononce')
 const { Crypto } = require('@peculiar/webcrypto')
 const crypto = require('crypto')
 global.crypto = new Crypto()
-const bsv = require('bsv')
+const bsv = require('babbage-bsv')
 const { getPaymentPrivateKey } = require('sendover')
 const authriteUtils = require('authrite-utils')
 
