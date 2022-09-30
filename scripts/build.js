@@ -3,7 +3,7 @@ const fs = require('fs')
 require('dotenv').config()
 const bsv = require('babbage-bsv')
 const PUBKEY = bsv
-  .PrivateKey.fromString(process.env.SERVER_PRIVATE_KEY)
+  .PrivateKey.fromHex(process.env.SERVER_PRIVATE_KEY)
   .publicKey.toString()
 
 ejs.renderFile(
