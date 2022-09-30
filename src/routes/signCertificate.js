@@ -5,6 +5,7 @@ global.crypto = new Crypto()
 const bsv = require('babbage-bsv')
 const { getPaymentPrivateKey } = require('sendover')
 const authriteUtils = require('authrite-utils')
+const stringify = require('json-stable-stringify')
 
 module.exports = {
   type: 'post',
@@ -126,7 +127,7 @@ module.exports = {
       }
 
       // 6. Signs the cert
-      const dataToSign = Buffer.from(JSON.stringify(certificate))
+      const dataToSign = Buffer.from(stringify(certificate))
 
       // Construct an object with the fields you know about
       const signature = bsv.crypto.ECDSA.sign(
