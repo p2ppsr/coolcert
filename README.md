@@ -2,6 +2,12 @@
 
 Demo Authrite Certificate Issuance Server
 
+A Stageline ("testnet") deployment of the master branch of this repository is available at [https://staging-coolcert.babbage.systems](https://staging-coolcert.babbage.systems)
+
+Having a CoolCert certificate allows you to buy Cool Bytes from [The Byte Shop](https://github.com/p2ppsr/byte-shop)!
+
+There is a [UI for interacting with CoolCert](https://github.com/p2ppsr/coolcert-ui) as well.
+
 ## The Cool People Certificate
 
 For this demo, CoolCert issues the Cool People Certificate to anyone who requests it, without performing any due dilligence or validation about who they are. In the real world, certifiers should have confidence that certificate subjects are authentic. The Certificate Type ID for the Cool People Certificate is `AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo=`. The certificate has a single field, `cool`, which is always `true`.
