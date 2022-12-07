@@ -35,7 +35,9 @@ jobs:
           DOJO_URL: ${{ env.CURRENT_BRANCH == 'production' && 'https://dojo.babbage.systems' || 'https://staging-dojo.babbage.systems' }}
           ROUTING_PREFIX: ''
           CERTIFICATE_TYPE_ID: 'AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo=' # Cool Person Certificate Type
-      - uses: google-github-actions/deploy-cloudrun@main
+      - uses: google-github-actions/auth@v1
         with:
-          credentials: ${{ secrets.gcp_deploy_creds }}
+          credentials_json: ${{ secrets.gcp_deploy_creds }}
+      - uses: google-github-actions/deploy-cloudrun@v0
+        with:
           metadata: "service.${{ env.CURRENT_BRANCH }}.yaml"
