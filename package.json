@@ -11,7 +11,7 @@
   "license": "Open BSV License",
   "dependencies": {
     "@peculiar/webcrypto": "^1.4.0",
-    "authrite-express": "^0.3.0",
+    "authrite-express": "^0.3.1",
     "authrite-utils": "^0.2.0",
     "babbage-bsv": "^0.1.1",
     "body-parser": "^1.20.0",
