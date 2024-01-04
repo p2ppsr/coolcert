@@ -109,7 +109,7 @@ module.exports = {
       const derivedPrivateKey = getPaymentPrivateKey({
         senderPublicKey: validationPublicKey,
         recipientPrivateKey: process.env.SERVER_PRIVATE_KEY,
-        invoiceNumber: `2-authrite certificate signature ${process.env.CERTIFICATE_TYPE_ID}-${req.body.serialNumber}`,
+        invoiceNumber: `2-authrite certificate signature ${Buffer.from(process.env.CERTIFICATE_TYPE_ID, 'base64').toString('hex')}-${req.body.serialNumber}`,
         returnType: 'wif'
       })
 
