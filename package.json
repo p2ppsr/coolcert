@@ -1,6 +1,6 @@
 {
   "name": "coolcert",
-  "version": "0.2.31",
+  "version": "0.2.32",
   "description": "Certificate Authority for issuing Cool People Certificates (CPCs).",
   "main": "src/index.js",
   "scripts": {
