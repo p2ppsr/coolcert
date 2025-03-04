@@ -19,10 +19,9 @@ perl -E'
           value: \x27$ENV{$_}\x27" for @ARGV;
 ' NODE_ENV \
     SERVER_PRIVATE_KEY \
-    HOSTING_DOMAIN \
-    ROUTING_PREFIX \
+    BSV_NETWORK \
     CERTIFICATE_TYPE_ID \
-    DOJO_URL >> $1
+    WALLET_STORAGE_URL >> $1
 
 echo "Built! Contents of $1:"
 cat $1
