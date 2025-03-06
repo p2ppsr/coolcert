@@ -17,8 +17,13 @@
     "composite": true,
     "noImplicitOverride": true
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "jest.config.ts"],
-  "references": [
-  ]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "out",
+    "jest.config.ts"
+  ],
+  "references": []
 }

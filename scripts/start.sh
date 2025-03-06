@@ -1,4 +1,4 @@
 #!/bin/bash
 
 npm run build
-node out/src/index.js
+node out/index.js
