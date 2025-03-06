@@ -2,10 +2,10 @@
   "name": "coolcert",
   "version": "1.0.0",
   "description": "Certificate Authority for issuing Cool People Certificates (CPCs).",
-  "main": "src/index.js",
+  "main": "out/index.js",
   "scripts": {
-    "start": "tsc --build; node out/src/index.js",
-    "build": "tsc --build"
+    "start": "tsc && node out/index.js",
+    "build": "tsc"
   },
   "author": "Peer-to-peer Privacy Systems Research, LLC",
   "license": "Open BSV License",
