@@ -55,16 +55,16 @@ export const signCertificate: CertifierRoute = {
       }
 
       // Verify the client actually created the provided nonce
-      await verifyNonce(clientNonce, server.wallet, req.auth.identityKey)
+      await verifyNonce(clientNonce, server.wallet, (req as any).auth.identityKey)
 
       // Server creates a random nonce that the client can verify
-      const serverNonce = await createNonce(server.wallet, req.auth.identityKey)
+      const serverNonce = await createNonce(server.wallet, (req as any).auth.identityKey)
       // The server computes a serial number from the client and server nonces
       const { hmac } = await server.wallet.createHmac({
         data: Utils.toArray(clientNonce + serverNonce, 'base64'),
         protocolID: [2, 'certificate issuance'],
         keyID: serverNonce + clientNonce,
-        counterparty: req.auth.identityKey
+        counterparty: (req as any).auth.identityKey
       })
       const serialNumber = Utils.toBase64(hmac)
 
@@ -73,7 +73,7 @@ export const signCertificate: CertifierRoute = {
         server.wallet,
         masterKeyring,
         fields,
-        req.auth.identityKey
+        (req as any).auth.identityKey
       )
 
       // Refactored check: Ensure that the "cool" field is present and equals "true"
@@ -90,7 +90,7 @@ export const signCertificate: CertifierRoute = {
       const signedCertificate = new Certificate(
         type,
         serialNumber,
-        req.auth.identityKey,
+        (req as any).auth.identityKey,
         ((await server.wallet.getPublicKey({ identityKey: true })).publicKey),
         `${revocationTxid}.0`,
         fields
