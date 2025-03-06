@@ -7,7 +7,6 @@ import * as routes from './routes'
 export interface CertifierServerOptions {
   port: number
   wallet: WalletInterface
-  // storage: CertifierStorage // Enable as needed
   monetize: boolean
   calculateRequestPrice?: (req: Request) => number | Promise<number>
 }
