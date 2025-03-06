@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { spawn } from 'child_process'
 import * as dotenv from 'dotenv'
 import { CertifierServer, CertifierServerOptions } from './CertifierServer'
 import { Setup } from '@bsv/wallet-toolbox'
@@ -55,13 +54,6 @@ async function setupCertifierServer(): Promise<{
   try {
     const context = await setupCertifierServer()
     context.server.start()
-
-    // Conditionally start nginx
-    if (NODE_ENV !== 'development') {
-      console.log('Spawning nginx...')
-      spawn('nginx', [], { stdio: ['inherit', 'inherit', 'inherit'] })
-      console.log('nginx is up!')
-    }
   } catch (error) {
     console.error('Error starting server:', error)
   }
