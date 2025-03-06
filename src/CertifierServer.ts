@@ -3,6 +3,7 @@ import express, { Request, Response } from 'express'
 import { AuthMiddlewareOptions, createAuthMiddleware } from '@bsv/auth-express-middleware'
 import { createPaymentMiddleware } from '@bsv/payment-express-middleware'
 import * as routes from './routes'
+import { AuthRequest } from '@bsv/auth-express-middleware'
 
 export interface CertifierServerOptions {
   port: number
@@ -19,7 +20,7 @@ export interface CertifierRoute {
   exampleBody?: object
   exampleResponse: object
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  func: (req: Request, res: Response, server: CertifierServer) => Promise<any>
+  func: (req: AuthRequest, res: Response, server: CertifierServer) => Promise<any>
 }
 
 export class CertifierServer {
