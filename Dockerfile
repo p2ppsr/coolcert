@@ -21,7 +21,7 @@ FROM node:22-alpine
 WORKDIR /app
 
 # Copy the build output from the builder
-COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/out ./out
 
 # Copy only the production dependencies
 COPY package*.json ./
