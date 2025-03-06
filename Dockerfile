@@ -31,4 +31,4 @@ RUN npm ci --production
 EXPOSE 8080
 
 # Start command
-CMD [ "sh", "scripts/start.sh"]
+CMD ["node", "out/index.js"]
