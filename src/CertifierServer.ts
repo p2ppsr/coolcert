@@ -64,7 +64,7 @@ export class CertifierServer {
       this.app.use(
         createPaymentMiddleware({
           wallet: this.wallet,
-          calculateRequestPrice: async (req: Request) => {
+          calculateRequestPrice: async (req) => {
             return 0 //temp
           }
         })
