@@ -42,7 +42,7 @@ export class CertifierServer {
     this.app.use(express.json({ limit: '30mb' }))
 
     // This allows the API to be used everywhere when CORS is enforced
-    this.app.use((req, res, next) => {
+    this.app.use((req: Request, res: Response, next) => {
       res.header('Access-Control-Allow-Origin', '*')
       res.header('Access-Control-Allow-Headers', '*')
       res.header('Access-Control-Allow-Methods', '*')
@@ -64,7 +64,7 @@ export class CertifierServer {
       this.app.use(
         createPaymentMiddleware({
           wallet: this.wallet,
-          calculateRequestPrice: async (req) => {
+          calculateRequestPrice: async (req: Request) => {
             return 0 //temp
           }
         })
