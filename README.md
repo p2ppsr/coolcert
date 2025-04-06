@@ -16,7 +16,7 @@ Adapt this certificate issuance server to your own needs by adding a database wi
 
 ## Setting Up
 
-Intall Docker, then add a `SERVER_PRIVATE_KEY` to your `docker-compose.yml` file.
+Install Docker, then add a `SERVER_PRIVATE_KEY` to your `docker-compose.yml` file.
 
 Run `docker compose up`. Your CoolCert server will be ready to issue certificates from port **3002**.
 
