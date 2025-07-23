@@ -28,7 +28,7 @@ jobs:
         run: npm ci
 
       - name: Push Docker Image to GCR
-        uses: RafikFarhad/push-to-gcr-github-action@v4.1
+        uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
         with:
           gcloud_service_key: ${{ secrets.DOCKER_REGISTRY_PUSH_KEY }}
           registry: ${{ env.GCR_HOST }}
