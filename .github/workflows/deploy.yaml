@@ -27,6 +27,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v1
+        with:
+          credentials_json: ${{ secrets.gcp_deploy_creds }}
+
       - name: Push Docker Image to GCR
         uses: RafikFarhad/push-to-gcr-github-action@v5-rc1
         with:
@@ -46,11 +51,6 @@ jobs:
           SERVER_PRIVATE_KEY: ${{ env.CURRENT_BRANCH == 'production' && secrets.PROD_SERVER_PRIVATE_KEY || secrets.STAGING_SERVER_PRIVATE_KEY }}
           WALLET_STORAGE_URL: ${{ env.CURRENT_BRANCH == 'production' && secrets.PROD_WALLET_STORAGE_URL || secrets.STAGING_WALLET_STORAGE_URL }}
           CERTIFICATE_TYPE_ID: 'AGfk/WrT1eBDXpz3mcw386Zww2HmqcIn3uY6x4Af1eo='
-
-      - name: Authenticate to Google Cloud
-        uses: google-github-actions/auth@v1
-        with:
-          credentials_json: ${{ secrets.gcp_deploy_creds }}
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v1
