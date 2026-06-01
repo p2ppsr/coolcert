@@ -84,8 +84,9 @@ export const signCertificate: CertifierRoute = {
         })
       }
 
-      // Create a revocation outpoint (logic omitted for simplicity)
-      const revocationTxid = 'not supported'
+      // Revocation is not supported by this demo certifier, but the SDK still
+      // requires a syntactically valid TXID.OutputIndex outpoint for signing.
+      const revocationTxid = '0000000000000000000000000000000000000000000000000000000000000000'
 
       const signedCertificate = new Certificate(
         type,
