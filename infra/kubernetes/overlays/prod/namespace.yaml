@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: coolcert-prod
+  labels:
+    app.kubernetes.io/name: coolcert
+    app.kubernetes.io/part-of: coolcert
+    environment: prod

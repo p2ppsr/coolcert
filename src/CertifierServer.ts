@@ -41,6 +41,10 @@ export class CertifierServer {
   private setupRoutes(): void {
     this.app.use(express.json({ limit: '30mb' }))
 
+    this.app.get('/healthz', (_req, res) => {
+      res.status(200).json({ status: 'ok' })
+    })
+
     // This allows the API to be used everywhere when CORS is enforced
     this.app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', '*')
@@ -112,4 +116,3 @@ export class CertifierServer {
     }
   }
 }
-

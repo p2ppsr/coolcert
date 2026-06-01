@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: coolcert
+  labels:
+    app.kubernetes.io/name: coolcert
+    app.kubernetes.io/component: ingress
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: []
+      secretName: coolcert-tls
+  rules: []
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: coolcert-tls
+  labels:
+    app.kubernetes.io/name: coolcert
+    app.kubernetes.io/component: tls
+spec:
+  secretName: coolcert-tls
+  dnsNames: []
+  issuerRef:
+    kind: ClusterIssuer
+    name: letsencrypt-nginx
