@@ -14,27 +14,6 @@ images:
 
 patches:
   - target:
-      kind: Ingress
-      name: coolcert
-    patch: |-
-      - op: replace
-        path: /spec/tls/0/hosts
-        value:
-          - coolcert-api.babbage.systems
-      - op: replace
-        path: /spec/rules
-        value:
-          - host: coolcert-api.babbage.systems
-            http:
-              paths:
-                - path: /
-                  pathType: Prefix
-                  backend:
-                    service:
-                      name: coolcert
-                      port:
-                        number: 8080
-  - target:
       kind: Certificate
       name: coolcert-tls
     patch: |-
